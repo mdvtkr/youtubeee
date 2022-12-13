@@ -88,12 +88,3 @@ class youtubeee:
                     continue
 
         print('todo processing done.')
-    
-
-tube = youtubeee()
-if not tube.init():
-    print('error or nothing to do')
-    exit(1)
-tube.run_todos()
-
-        

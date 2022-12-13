@@ -7,9 +7,9 @@
 - tested on macos (move file to trash)
 
 ## How to use
-- create virtual environment using pipenv
+- create virtual environment using pipenv.
 - `pipenv install`
-- locate `todo.json` in working directory
+- locate `todo.json` in working directory.
 ```jsonc
 [
     {
@@ -24,4 +24,12 @@
     },
     //...
 ]
+```
+- sample usage
+```python 
+tube = youtubeee()
+if not tube.init():
+    print('error or nothing to do')
+    exit(1)
+tube.run_todos()
 ```
