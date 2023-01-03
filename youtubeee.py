@@ -3,7 +3,7 @@ import json
 import os
 import v3.uploader as api_uploader
 
-class youtubeee:
+class Youtubeee:
     def __init__(self, working_dir='./'):
         self.__working_dir = working_dir
         self.__quota_exceeded_client = []
