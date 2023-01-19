@@ -77,6 +77,8 @@ def get_authenticated_service(args):
     scope=YOUTUBE_UPLOAD_SCOPE,
     message=MISSING_CLIENT_SECRETS_MESSAGE
     )
+    
+  print(f"request {args.channel.get('name', '')} oauth")
   storage = Storage(f"{os.path.splitext(args.client_secret)[0]}-oauth2.json")
   credentials = storage.get()
 
@@ -149,15 +151,6 @@ def initialize_upload(youtube, options):
   if video_id is not None and options.playlist_id is not None:
     add_video_to_playlist(youtube, video_id, options.playlist_id)
 
-  def trash_file(full_path):
-    print('delete ' + full_path)
-    trash_path = f'{str(pathlib.Path.home())}/.Trash/{os.path.basename(full_path)}'
-    os.rename(full_path, trash_path)
-
-  if options.delete_uploaded_file:
-    trash_file(options.file) 
-
-
 # This method implements an exponential backoff strategy to resume a
 # failed upload.
 def resumable_upload(insert_request):
@@ -200,7 +193,7 @@ def resumable_upload(insert_request):
 
 def upload(youtube, args):
   if not os.path.exists(args.file):
-    exit("Please specify a valid file using the --file= parameter.")
+    exit("file does not exist.")
 
   try:
     initialize_upload(youtube, args)
@@ -208,10 +201,10 @@ def upload(youtube, args):
   except HttpError as e:
     print ("An HTTP error %d occurred:\n%s" % (e.resp.status, e.content))
     if int(e.resp.status) == 403 and 'exceed' in e.content.decode('ascii'):   # quota is exceeded
-      return False
-    return True
+      print('  quota exceeded')
+    return False
   
-def open_youtube_service(client_secret, delete_uploaded_file=True):
+def open_youtube_service(client_secret, channel):
   args = types.SimpleNamespace()
   args.auth_host_name = 'localhost'
   args.auth_host_port = [8080, 8090]
@@ -222,7 +215,7 @@ def open_youtube_service(client_secret, delete_uploaded_file=True):
   args.noauth_local_webserver = False
   args.privacyStatus = 'private'
   args.client_secret = client_secret
-  args.delete_uploaded_file = delete_uploaded_file
+  args.channel = channel
 
   return get_authenticated_service(args), args
 
