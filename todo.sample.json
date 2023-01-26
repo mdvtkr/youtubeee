@@ -1,0 +1,15 @@
+[
+    {
+        "file_path" : "full path containing video files",
+        "to": [
+            {
+                "channel": {
+                    "name":"channel name",
+                    "id":"channel id"
+                },
+                "client_secret":"oauth2 desktop client secret from google cloud console(json)",
+                "share" : "[does not support yet]email addresses to be shared."
+            }
+        ]
+    }
+]

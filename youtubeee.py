@@ -85,10 +85,9 @@ class Youtubeee:
                     'playlist_id': to.get('playlist_id', None)
                 })
 
-            log_indent = INDENT
             print(log_indent + 'uploading files...')
-            log_indent += INDENT
             for video in videos:
+                log_indent = INDENT+INDENT
                 file_path = str(video['path'].absolute())
                 print(log_indent + 'file processing start: ' + file_path)
                 log_indent += INDENT

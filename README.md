@@ -13,16 +13,17 @@
 ```jsonc
 [
     {
-        "file_path" : "full path of directory that contains video files",
-        "to": [ 
+        "file_path" : "full path containing video files",
+        "to": [
             {
-                "client_secret" : "full path of oauth client secret file",
-                "youtube_playlist_id" : "(optional) play list id to be add"
-            },
-            // ...
+                "channel": {
+                    "name":"channel name",
+                    "id":"channel id"
+                },
+                "client_secret":"full path of oauth2 desktop client secret file",
+            }
         ]
-    },
-    //...
+    }
 ]
 ```
 - sample usage
