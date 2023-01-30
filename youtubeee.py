@@ -82,7 +82,8 @@ class Youtubeee:
                     'args': args, 
                     'client_secret': to['client_secret'], 
                     'name': channel_name,
-                    'playlist_id': to.get('playlist_id', None)
+                    'playlist_id': to.get('playlist_id', None),
+                    'channel_id' : to.get('channel', None)
                 })
 
             print(log_indent + 'uploading files...')
@@ -112,12 +113,13 @@ class Youtubeee:
                     args = channel['args']
                     args.file = file_path
                     args.title = title
-                    args.playlist_id = channel.get('playlist_id', None)
+                    args.playlist_id = channel['playlist_id']
+                    args.channel_id = channel['channel_id']
                     print(log_indent + 'channel: ' + channel['name'])
                     print(log_indent + 'playlist: ' + str(args.playlist_id))
                     print(log_indent + 'uploading...')
 
-                    if not api_uploader.upload(channel['svc'], args):
+                    if not api_uploader.upload(channel['svc'], channel['client_secret'], args):
                         delete_file = False
                         self.__unavaliable_client.append(channel['name'])
                         continue    # continue to next channel

@@ -14,6 +14,7 @@ from googleapiclient.http import MediaFileUpload
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.file import Storage
 from oauth2client.tools import argparser, run_flow
+from oauth2client.client import HttpAccessTokenRefreshError
 
 
 # Explicitly tell the underlying HTTP transport library not to retry, since
@@ -145,7 +146,11 @@ def initialize_upload(youtube, options):
   )
 
   print(f'start uploading: {options.file}')
-  video_id = resumable_upload(insert_request)
+  try:
+    video_id = resumable_upload(insert_request)
+  except:
+    raise
+
   print(f'uploaded: {options.file}') 
 
   if video_id is not None and options.playlist_id is not None:
@@ -168,12 +173,14 @@ def resumable_upload(insert_request):
           exit("The upload failed with an unexpected response: %s" % response)
     except HttpError as e:
       if e.resp.status in RETRIABLE_STATUS_CODES:
-        error = "A retriable HTTP error %d occurred:\n%s" % (e.resp.status,
-                                                             e.content)
+        error = "A retriable HTTP error %d occurred:\n%s" % (e.resp.status, e.content)
       else:
         raise
     except RETRIABLE_EXCEPTIONS as e:
       error = "A retriable error occurred: %s" % e
+    except Exception as e:
+      print(repr(e))
+      raise
 
     if error is not None:
       print(error)
@@ -191,7 +198,7 @@ def resumable_upload(insert_request):
   else:
     return None
 
-def upload(youtube, args):
+def upload(youtube, client_secret, args):
   if not os.path.exists(args.file):
     exit("file does not exist.")
 
@@ -203,6 +210,10 @@ def upload(youtube, args):
     if int(e.resp.status) == 403 and 'exceed' in e.content.decode('ascii'):   # quota is exceeded
       print('  quota exceeded')
     return False
+  except HttpAccessTokenRefreshError as e:
+    print('token is invalidated. retry...')
+    youtube2, args2 = open_youtube_service(client_secret, args.channel_id)
+    upload(youtube2, args2)
   
 def open_youtube_service(client_secret, channel):
   args = types.SimpleNamespace()
