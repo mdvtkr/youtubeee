@@ -43,7 +43,7 @@ class Youtubeee:
                 timestamp = path.stat().st_mtime
                 numbering = name.split('.')[0].split(' ')[0]
                 if len(numbering) > 0 and str.isdigit(numbering):    # file name like ( '1.xxx' or '1 xxx' )
-                    return (int(name.split('.')[0]), timestamp)
+                    return (int(numbering), timestamp)
                 else:
                     return (sys.maxsize, timestamp)
 
@@ -131,3 +131,17 @@ class Youtubeee:
                     print(log_indent + video['path'].name + ' is not deleted because uploading failed to some of channel(s)')
 
         print('todo processing done.')
+
+if __name__ == '__main__':
+    if getattr(sys, 'frozen', False):
+        # runned executable built by pyinstaller
+        # print("meipass: "  + sys._MEIPASS)
+        root_path = str(Path(sys.executable).parent)
+    else:
+        root_path = os.curdir
+
+    tube = Youtubeee(root_path + os.sep + 'youtubeee')
+    if not tube.init():
+        print('error or nothing to do')
+    else:
+        tube.run_todos()
