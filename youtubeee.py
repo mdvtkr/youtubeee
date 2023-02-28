@@ -50,6 +50,9 @@ class Youtubeee:
             def traverse_directories(path:Path, hierachy_names=[]):
                 video_infos = []         # add sorted files per path
                 cur_dir_videos = []      # current files found
+                if not path.exists():
+                    return video_infos
+            
                 # process folder first if exists
                 for file in path.iterdir():
                     if file.is_dir():
