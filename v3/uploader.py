@@ -213,7 +213,7 @@ def upload(youtube, client_secret, args):
   except HttpAccessTokenRefreshError as e:
     print('token is invalidated. retry...')
     youtube2, args2 = open_youtube_service(client_secret, args.channel_id)
-    upload(youtube2, args2)
+    return upload(youtube2, args2)
   
 def open_youtube_service(client_secret, channel):
   args = types.SimpleNamespace()
