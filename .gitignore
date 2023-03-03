@@ -1,4 +1,7 @@
 **/__pycache__/**
 secrets/**
-todo.json
+**/*todo.json
 .venv
+build
+*.spec
+dist

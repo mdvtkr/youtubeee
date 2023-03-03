@@ -4,6 +4,10 @@ import os
 import sys
 import v3.uploader as api_uploader
 from pathlib import Path
+import argparse
+
+__print = print
+print = lambda x:__print(x, flush=True)
 
 class Youtubeee:
     def __init__(self, working_dir='./'):
@@ -13,7 +17,8 @@ class Youtubeee:
         self.__config.video_extensions = ['.mp4', '.mkv', '.webm']
     
     def init(self) -> bool:
-        todo_path = os.path.join(self.__working_dir, 'todo.json')
+        todo_path = os.path.join(self.__working_dir, 'config', 'youtubeee.todo.json')
+        print('find todo file: ' + todo_path)
         if not os.path.exists(todo_path):
             print('todo.json does not exists.')
             return False
@@ -143,7 +148,7 @@ if __name__ == '__main__':
     else:
         root_path = os.curdir
 
-    tube = Youtubeee(root_path + os.sep + 'youtubeee')
+    tube = Youtubeee(root_path)
     if not tube.init():
         print('error or nothing to do')
     else:
