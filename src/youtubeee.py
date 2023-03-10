@@ -4,6 +4,7 @@ import os
 import sys
 import v3.uploader as api_uploader
 from pathlib import Path
+import time
 import argparse
 
 __print = print
@@ -11,6 +12,7 @@ print = lambda x:__print(x, flush=True)
 
 class Youtubeee:
     def __init__(self, working_dir='./'):
+        print(f"{os.linesep}{os.linesep}{type(self).__name__} start running: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
         self.__working_dir = working_dir
         self.__unavaliable_client = []
         self.__config = types.SimpleNamespace()

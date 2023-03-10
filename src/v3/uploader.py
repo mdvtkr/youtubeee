@@ -86,8 +86,10 @@ def get_authenticated_service(args):
   if credentials is None or credentials.invalid:
     credentials = run_flow(flow, storage, args)
 
-  return build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
-    http=credentials.authorize(httplib2.Http()))
+  return build(YOUTUBE_API_SERVICE_NAME, 
+               YOUTUBE_API_VERSION,
+               http=credentials.authorize(httplib2.Http()),
+               static_discovery=False)
 
 def add_video_to_playlist(youtube,videoID,playlistID):
   response = youtube.playlistItems().insert(
