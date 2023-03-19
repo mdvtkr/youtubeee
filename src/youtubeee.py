@@ -11,15 +11,16 @@ __print = print
 print = lambda x:__print(x, flush=True)
 
 class Youtubeee:
-    def __init__(self, working_dir='./'):
+    def __init__(self, working_dir='./', todo_name='youtubeee.todo.json'):
         print(f"{os.linesep}{os.linesep}{type(self).__name__} start running: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
         self.__working_dir = working_dir
         self.__unavaliable_client = []
         self.__config = types.SimpleNamespace()
         self.__config.video_extensions = ['.mp4', '.mkv', '.webm']
+        self.__todo_name = todo_name
     
     def init(self) -> bool:
-        todo_path = os.path.join(self.__working_dir, 'config', 'youtubeee.todo.json')
+        todo_path = os.path.join(self.__working_dir, 'config', self.__todo_name)
         print('find todo file: ' + todo_path)
         if not os.path.exists(todo_path):
             print('todo.json does not exists.')
@@ -150,7 +151,12 @@ if __name__ == '__main__':
     else:
         root_path = os.curdir
 
-    tube = Youtubeee(root_path)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-t', '--todo', default='youtubeee.todo.json', help='specify todo file name. default name is "youtubeee.todo.json"', dest='todo')
+
+    args = parser.parse_args()
+    
+    tube = Youtubeee(working_dir=root_path, todo_name=args.todo)
     if not tube.init():
         print('error or nothing to do')
     else:
