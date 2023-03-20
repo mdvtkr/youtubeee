@@ -1,6 +1,6 @@
 import types
 import json
-import os
+import os, platform
 import sys
 import v3.uploader as api_uploader
 from pathlib import Path
@@ -137,7 +137,12 @@ class Youtubeee:
 
                 if delete_file: # trash file
                     print(log_indent + 'delete ' + file_path)
-                    video['path'].rename(Path.home()/'.Trash'/video['path'].name)
+                    cur_os = platform.system().lower()
+                    if 'darwin' in cur_os:
+                        video['path'].rename(Path.home()/'.Trash'/video['path'].name)
+                    elif 'linux' in cur_os:
+                        (Path.home()/'.local'/'files').mkdir(parents=True, exist_ok=True)
+                        video['path'].rename(Path.home()/'.local'/'files'/video['path'].name)
                 else: 
                     print(log_indent + video['path'].name + ' is not deleted because uploading failed to some of channel(s)')
 
