@@ -62,13 +62,14 @@ class Youtubeee:
                     return video_infos
             
                 # process folder first if exists
-                for file in path.iterdir():
+                for file in sorted(path.iterdir()):
                     if file.is_dir():
                         print(log_indent + 'subdirectory searching in ' + str(file.absolute()))
-                        hierachy_names.append(file.name)
-                        video_infos.extend(traverse_directories(file, hierachy_names))     # recursive searching
+                        subhierachy = hierachy_names.copy()
+                        subhierachy.append(file.name)
+                        video_infos.extend(traverse_directories(file, subhierachy))     # recursive searching
                     elif file.suffix in self.__config.video_extensions:
-                        cur_dir_videos.append( { 'path':file, 'hierarcy': hierachy_names })
+                        cur_dir_videos.append( { 'path':file, 'hierarchy': hierachy_names })
 
                 cur_dir_videos = sorted(cur_dir_videos, key=lambda x: file_ordering_key(x['path']))
                 video_infos.extend(cur_dir_videos)
@@ -104,8 +105,8 @@ class Youtubeee:
                 print(log_indent + 'file processing start: ' + file_path)
                 log_indent += INDENT
                 title = ''
-                for midname in video['hierarcy']:
-                    args.title = f'{args.title}[{midname}]'
+                for midname in video['hierarchy']:
+                    title = f'{title}[{midname}]'
                 title += ' ' + video['path'].stem
                 print(log_indent + 'title: ' + title)
                 
