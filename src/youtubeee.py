@@ -16,7 +16,7 @@ class Youtubeee:
         self.__working_dir = working_dir
         self.__unavaliable_client = []
         self.__config = types.SimpleNamespace()
-        self.__config.video_extensions = ['.mp4', '.mkv', '.webm']
+        self.__config.video_extensions = ['.mp4', '.mkv', '.webm', '.mov']
         self.__todo_name = todo_name
     
     def init(self) -> bool:
