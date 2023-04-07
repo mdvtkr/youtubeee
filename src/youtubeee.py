@@ -6,6 +6,8 @@ import v3.uploader as api_uploader
 from pathlib import Path
 import time
 import argparse
+from datetime import datetime
+import re
 
 __print = print
 print = lambda x:__print(x, flush=True)
@@ -53,7 +55,59 @@ class Youtubeee:
                 if len(numbering) > 0 and str.isdigit(numbering):    # file name like ( '1.xxx' or '1 xxx' )
                     return (int(numbering), timestamp)
                 else:
-                    return (sys.maxsize, timestamp)
+                    def is_valid_date(val:str, date_only=False) -> str:
+                        if platform.system() == 'Windows':
+                            modifier = '#'
+                        else:
+                            modifier = '-'
+
+                        # yyyymmdd_hhmiss
+                        # yyyymmdd
+                        # yyyy-mm-dd
+                        # yyyy.mm.dd
+                        # yyyy.m.d
+                        # yyyy-m-d
+                        # yymmdd
+                        # yy.m.d
+                        # yy-m-d
+                        # (re pattern, datetime format, length of date string)
+                        available_formats = (
+                            (r'^\d{8}_\d{6}', '%Y%m%d_%H%M%S', 15),
+                            (r'^\d{8}', '%Y%m%d', 8),
+                            (r'^\d{4}-\d{2}-\d{2}', '%Y-%m-%d', 10),
+                            (r'^\d{4}.\d{2}.\d{2}', '%Y.%m.%d', 10),
+                            (r'^\d{4}.\d{1}.\d{1}', '%Y.%{0}m.%{0}d'.format(modifier), 8),
+                            (r'^\d{4}-\d{1}-\d{1}', '%Y-%{0}m-%{0}d'.format(modifier), 8),
+                            (r'^\d{6}', '%y%m%d', 6),
+                            (r'^\d{2}.\d{1}.\d{1}', '%y.%{0}m.%{0}d'.format(modifier), 6),
+                            (r'^\d{2}-\d{1}-\d{1}', '%y-%{0}m-%{0}d'.format(modifier), 6),
+                        )
+
+                        for format in available_formats:
+                            pat = format[0]
+                            date_format = format[1]
+                            length = format[2]
+
+                            if date_only and length != len(val):
+                                continue
+
+                            date_str = val[:length]
+                            prog = re.compile(pat)
+                            if prog.match(date_str):
+                                try:
+                                    datetime.strptime(date_str, date_format)
+                                    return date_str
+                                except:
+                                    continue                           
+
+                        return None
+                    
+                    if date_str := is_valid_date(name):
+                        int_key = int(date_str.replace('.', '').replace(' ', '').replace('-', '').replace('_', ''))
+                    else:
+                        int_key = sys.maxsize
+                            
+                    return (int_key, timestamp)
 
             def traverse_directories(path:Path, hierachy_names=[]):
                 video_infos = []         # add sorted files per path
