@@ -1,3 +1,5 @@
+#-*- coding:utf-8 -*-
+
 import types
 import json
 import os, platform
@@ -6,11 +8,12 @@ import v3.uploader as api_uploader
 from pathlib import Path
 import time
 import argparse
+import unicodedata
 from datetime import datetime
 import re
 
 __print = print
-print = lambda x:__print(x, flush=True)
+print = lambda x, intent=0:__print("   "*intent + x, flush=True)
 
 class Youtubeee:
     def __init__(self, working_dir='./', todo_name='youtubeee.todo.json'):
@@ -28,7 +31,7 @@ class Youtubeee:
             print('todo.json does not exists.')
             return False
 
-        f = open(todo_path, 'r')
+        f = open(todo_path, 'r', encoding='utf-8')
         self.__todo = json.load(f)
         f.close()
 
@@ -44,8 +47,6 @@ class Youtubeee:
             print('======================')
             print(root_path)
             print('======================')
-            INDENT = '  '
-            log_indent = INDENT
             # comes first if file name start with number
             # files ordered by timestamp come next
             def file_ordering_key(path:Path):
@@ -109,39 +110,52 @@ class Youtubeee:
                             
                     return (int_key, timestamp)
 
-            def traverse_directories(path:Path, hierachy_names=[]):
+            def visit_directories(path:Path):
                 video_infos = []         # add sorted files per path
-                cur_dir_videos = []      # current files found
+                hierarchy_names = []
                 if not path.exists():
                     return video_infos
-            
-                # process folder first if exists
-                for file in sorted(path.iterdir()):
-                    if file.is_dir():
-                        print(log_indent + 'subdirectory searching in ' + str(file.absolute()))
-                        subhierachy = hierachy_names.copy()
-                        subhierachy.append(file.name)
-                        video_infos.extend(traverse_directories(file, subhierachy))     # recursive searching
-                    elif file.suffix in self.__config.video_extensions:
-                        cur_dir_videos.append( { 'path':file, 'hierarchy': hierachy_names })
+                
+                meta_json = None
+                if (path/'files.json').exists():
+                    with (path/'files.json').open('rt', encoding='utf-8') as f:
+                        meta_json = json.load(f)
 
-                cur_dir_videos = sorted(cur_dir_videos, key=lambda x: file_ordering_key(x['path']))
-                video_infos.extend(cur_dir_videos)
+                def get_description(metas, file_name):
+                    if metas == None:
+                        return ""
+                    
+                    from difflib import SequenceMatcher
+                    for meta in metas:
+                        title = unicodedata.normalize('NFC', file_name) if sys.platform == 'darwin' else file_name      # macos Korean form is different from windows
+                        if SequenceMatcher(None, title, meta['title']).quick_ratio() > 0.8:
+                            return meta['text']
+                    return ""
+                
+                for cur_file in sorted(path.iterdir()):
+                    if cur_file.is_dir():
+                        hierarchy_names.append(cur_file.name)
+                        # add video in current directory
+                        videos = [ { 'path':x, 'hierarchy':hierarchy_names.copy(), 'description': get_description(meta_json, x.name)} for x in cur_file.iterdir() if x.is_file() and x.suffix in self.__config.video_extensions ]
+                    elif cur_file.suffix in self.__config.video_extensions:
+                        videos = [ { 'path':cur_file, 'hierarchy':hierarchy_names.copy(), 'description': get_description(meta_json, cur_file.stem)} ]
+                    else:
+                        continue
+                    videos = sorted(videos, key=lambda x: file_ordering_key(x['path']))
+                    video_infos.extend(videos)
+
                 return video_infos
 
-            print(log_indent + 'find files...')
-            log_indent += INDENT
-            videos = traverse_directories(Path(root_path))
+            print('find files...', 1)
+            videos = visit_directories(Path(root_path))
             if len(videos) == 0:
                 continue
 
-            log_indent = INDENT
-            print(log_indent + 'prepare youtube services...')
+            print('prepare youtube services...', 1)
             channels = []
-            log_indent += INDENT
             for to in todo['to']:
                 channel_name = to['channel']['name'] if ('channel' in to and 'name' in to['channel']) else to['client_secret']
-                print('  name: ' + channel_name)
+                print('name: ' + channel_name, 2)
                 youtube, args = api_uploader.open_youtube_service(to['client_secret'], to.get('channel', None))
                 channels.append({
                     'svc': youtube, 
@@ -152,54 +166,55 @@ class Youtubeee:
                     'channel_id' : to.get('channel', None)
                 })
 
-            print(log_indent + 'uploading files...')
+            print('uploading files...', 1)
             for video in videos:
-                log_indent = INDENT+INDENT
                 file_path = str(video['path'].absolute())
-                print(log_indent + 'file processing start: ' + file_path)
-                log_indent += INDENT
+                print('file processing start: ' + file_path, 2)
                 title = ''
                 for midname in video['hierarchy']:
                     title = f'{title}[{midname}]'
                 title += ' ' + video['path'].stem
-                print(log_indent + 'title: ' + title)
+                print('title: ' + title, 3)
                 
                 if len(file_path) < 3 or len(title) < 3:
-                    print(log_indent + 'video name or path length is wrong')
+                    print('video name or path length is wrong', 4)
                     continue
 
                 delete_file = True
-                log_indent += INDENT
                 for channel in channels:
                     if channel['name'] in self.__unavaliable_client:
                         delete_file = False
-                        print(log_indent + 'this channel quota is exceeded or unavailable: ' + channel['name'])
+                        print('this channel quota is exceeded or unavailable: ' + channel['name'], 4)
                         continue
 
                     args = channel['args']
                     args.file = file_path
                     args.title = title
+                    args.description = video['description']
                     args.playlist_id = channel['playlist_id']
                     args.channel_id = channel['channel_id']
-                    print(log_indent + 'channel: ' + channel['name'])
-                    print(log_indent + 'playlist: ' + str(args.playlist_id))
-                    print(log_indent + 'uploading...')
+                    print('channel: ' + channel['name'], 3)
+                    print('playlist: ' + str(args.playlist_id), 3)
+                    print('uploading...', 3)
 
                     if not api_uploader.upload(channel['svc'], channel['client_secret'], args):
                         delete_file = False
                         self.__unavaliable_client.append(channel['name'])
                         continue    # continue to next channel
 
-                if delete_file: # trash file
-                    print(log_indent + 'delete ' + file_path)
+                def trash_file():
                     cur_os = platform.system().lower()
                     if 'darwin' in cur_os:
                         video['path'].rename(Path.home()/'.Trash'/video['path'].name)
                     elif 'linux' in cur_os:
                         (Path.home()/'.local'/'files').mkdir(parents=True, exist_ok=True)
                         video['path'].rename(Path.home()/'.local'/'files'/video['path'].name)
+
+                if delete_file: # trash file
+                    print('delete ' + file_path, 2)
+                    trash_file()
                 else: 
-                    print(log_indent + video['path'].name + ' is not deleted because uploading failed to some of channel(s)')
+                    print(video['path'].name + ' is not deleted because uploading failed to some of channel(s)', 2)
 
         print('todo processing done.')
 
