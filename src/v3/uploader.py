@@ -116,6 +116,7 @@ def initialize_upload(youtube, options):
     tags = options.keywords.split(",")
 
   print('  >title: ' + options.title)
+  print('  >desc : ' + options.description if options.description != None else '')
 
   body=dict(
     snippet=dict(

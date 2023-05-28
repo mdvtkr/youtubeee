@@ -126,11 +126,17 @@ class Youtubeee:
                         return ""
                     
                     from difflib import SequenceMatcher
+                    top_ratio = 0
+                    top_matched = ""
                     for meta in metas:
                         title = unicodedata.normalize('NFC', file_name) if sys.platform == 'darwin' else file_name      # macos Korean form is different from windows
-                        if SequenceMatcher(None, title, meta['title']).quick_ratio() > 0.8:
+                        cur_ratio = SequenceMatcher(None, title, meta['title']).quick_ratio()
+                        if cur_ratio > 0.98:
                             return meta['text']
-                    return ""
+                        elif cur_ratio > top_ratio:
+                            top_ratio = cur_ratio
+                            top_matched = meta['text']
+                    return top_matched
                 
                 for cur_file in sorted(path.iterdir()):
                     if cur_file.is_dir():
