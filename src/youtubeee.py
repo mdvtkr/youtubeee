@@ -129,6 +129,8 @@ class Youtubeee:
                     top_ratio = 0
                     top_matched = ""
                     for meta in metas:
+                        if meta.get('text') == None:
+                            continue
                         title = unicodedata.normalize('NFC', file_name) if sys.platform == 'darwin' else file_name      # macos Korean form is different from windows
                         cur_ratio = SequenceMatcher(None, title, meta['title']).quick_ratio()
                         if cur_ratio > 0.98:
