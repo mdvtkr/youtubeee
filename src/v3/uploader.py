@@ -227,7 +227,7 @@ def open_youtube_service(client_secret, channel):
   args.keywords = ''
   args.logging_level = 'ERROR'
   args.noauth_local_webserver = False
-  args.privacyStatus = 'private'
+  args.privacyStatus = 'unlisted'
   args.client_secret = client_secret
   args.channel = channel
 
