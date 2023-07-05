@@ -11,6 +11,7 @@ import argparse
 import unicodedata
 from datetime import datetime
 import re
+import multiprocessing
 
 __print = print
 print = lambda x, intent=0:__print("   "*intent + x, flush=True)
@@ -227,6 +228,8 @@ class Youtubeee:
         print('todo processing done.')
 
 if __name__ == '__main__':
+    multiprocessing.freeze_support()
+    
     if getattr(sys, 'frozen', False):
         # runned executable built by pyinstaller
         # print("meipass: "  + sys._MEIPASS)
