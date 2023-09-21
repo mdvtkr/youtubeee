@@ -73,6 +73,10 @@ https://developers.google.com/api-client-library/python/guide/aaa_client_secrets
 
 VALID_PRIVACY_STATUSES = ("public", "private", "unlisted")
 
+OK=0
+QUOTA_EXCEEDED=2
+NOK=1
+
 def get_authenticated_service(args):
   flow = flow_from_clientsecrets(args.client_secret,
     scope=YOUTUBE_UPLOAD_SCOPE,
@@ -207,12 +211,13 @@ def upload(youtube, client_secret, args):
 
   try:
     initialize_upload(youtube, args)
-    return True
+    return OK
   except HttpError as e:
     print ("An HTTP error %d occurred:\n%s" % (e.resp.status, e.content))
     if int(e.resp.status) == 403 and 'exceed' in e.content.decode('ascii'):   # quota is exceeded
       print('  quota exceeded')
-    return False
+      return QUOTA_EXCEEDED
+    return NOK
   except HttpAccessTokenRefreshError as e:
     print('token is invalidated. retry...')
     youtube2, args2 = open_youtube_service(client_secret, args.channel_id)

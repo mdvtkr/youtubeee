@@ -21,7 +21,8 @@ class Youtubeee:
     def __init__(self, working_dir='./', todo_name='youtubeee.todo.json'):
         print(f"{os.linesep}{os.linesep}{type(self).__name__} start running: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
         self.__working_dir = working_dir
-        self.__unavaliable_client = []
+        self.__erred_channel = []
+        self.__quota_exceeded_channel = []
         self.__config = types.SimpleNamespace()
         self.__config.video_extensions = ['.mp4', '.mkv', '.webm', '.mov']
         self.__todo_name = todo_name
@@ -45,10 +46,6 @@ class Youtubeee:
 
     def run_todos(self):
         for todo in self.__todo:
-            root_path = todo['file_path']
-            print('======================')
-            print(root_path)
-            print('======================')
             # comes first if file name start with number
             # files ordered by timestamp come next
             def file_ordering_key(path:Path):
@@ -156,16 +153,42 @@ class Youtubeee:
 
                 return video_infos
 
+            # return True if channel is available.
+            def health_check(channel, quota=True, erred=False):
+                if quota and erred:
+                    black_list = [*self.__erred_channel, *self.__quota_exceeded_channel]
+                elif quota:
+                    black_list = self.__quota_exceeded_channel
+                elif erred:
+                    black_list = self.__erred_channel
+                else:
+                    return True
+                
+                if type(channel) == str:
+                    return not (channel in black_list)
+                else: # type would be list
+                    return not all(ch in black_list for ch in channel)
+                    
+            root_path = todo['file_path']
+            print('======================')
+            print(root_path)
+            print('======================')
+            
             print('find files...', 1)
             videos = visit_directories(Path(root_path))
             if len(videos) == 0:
+                print('no file in this path...', 2)
                 continue
 
             print('prepare youtube services...', 1)
             channels = []
             for to in todo['to']:
                 channel_name = to['channel']['name'] if ('channel' in to and 'name' in to['channel']) else to['client_secret']
+                if not health_check(channel_name):
+                    continue
+
                 print('name: ' + channel_name, 2)
+
                 youtube, args = api_uploader.open_youtube_service(to['client_secret'], to.get('channel', None))
                 channels.append({
                     'svc': youtube, 
@@ -178,6 +201,10 @@ class Youtubeee:
 
             print('uploading files...', 1)
             for video in videos:
+                if len(channels) == 0:
+                    print('no channel available', 3)
+                    break
+
                 file_path = str(video['path'].absolute())
                 print('file processing start: ' + file_path, 2)
                 title = ''
@@ -192,7 +219,7 @@ class Youtubeee:
 
                 delete_file = True
                 for channel in channels:
-                    if channel['name'] in self.__unavaliable_client:
+                    if not health_check(channel['name'], erred=True):
                         delete_file = False
                         print('this channel quota is exceeded or unavailable: ' + channel['name'], 4)
                         continue
@@ -205,12 +232,21 @@ class Youtubeee:
                     args.channel_id = channel['channel_id']
                     print('channel: ' + channel['name'], 3)
                     print('playlist: ' + str(args.playlist_id), 3)
-                    print('uploading...', 3)
+                    print('uploading...', 2)
 
-                    if not api_uploader.upload(channel['svc'], channel['client_secret'], args):
+                    result = api_uploader.upload(channel['svc'], channel['client_secret'], args)
+                    if result == api_uploader.OK:
+                        self.__erred_channel.pop(channel['name'])
+                    else:
                         delete_file = False
-                        self.__unavaliable_client.append(channel['name'])
+                        if result == api_uploader.NOK:
+                            self.__erred_channel.append(channel['name'])       # next video will try again
+                        else: # result == api_uploader.QUOTA_EXCEEDED:
+                            self.__quota_exceeded_channel.append(channel['name'])    # no more trial
                         continue    # continue to next channel
+
+                # refresh channel that has available quota 
+                channels = [ c for c in channels if c['name'] not in self.__quota_exceeded_channel ]
 
                 if delete_file: # trash file
                     print('delete ' + file_path, 2)
@@ -231,7 +267,7 @@ if __name__ == '__main__':
         root_path = os.curdir
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-t', '--todo', default='youtubeee.todo.json', help='specify todo file name. default name is "youtubeee.todo.json"', dest='todo')
+    parser.add_argument('-t', '--todo', default='youtubeee.ryjggh.json', help='specify todo file name. default name is "youtubeee.todo.json"', dest='todo')
 
     args = parser.parse_args()
     
