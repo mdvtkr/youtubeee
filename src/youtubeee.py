@@ -12,6 +12,7 @@ import unicodedata
 from datetime import datetime
 import re
 import multiprocessing
+from send2trash import send2trash
 
 __print = print
 print = lambda x, intent=0:__print("   "*intent + x, flush=True)
@@ -211,17 +212,9 @@ class Youtubeee:
                         self.__unavaliable_client.append(channel['name'])
                         continue    # continue to next channel
 
-                def trash_file():
-                    cur_os = platform.system().lower()
-                    if 'darwin' in cur_os:
-                        video['path'].rename(Path.home()/'.Trash'/video['path'].name)
-                    elif 'linux' in cur_os:
-                        (Path.home()/'.local'/'files').mkdir(parents=True, exist_ok=True)
-                        video['path'].rename(Path.home()/'.local'/'files'/video['path'].name)
-
                 if delete_file: # trash file
                     print('delete ' + file_path, 2)
-                    trash_file()
+                    send2trash(video['path'])
                 else: 
                     print(video['path'].name + ' is not deleted because uploading failed to some of channel(s)', 2)
 
