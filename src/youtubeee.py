@@ -236,7 +236,10 @@ class Youtubeee:
 
                     result = api_uploader.upload(channel['svc'], channel['client_secret'], args)
                     if result == api_uploader.OK:
-                        self.__erred_channel.pop(channel['name'])
+                        try:
+                            self.__erred_channel.remove(channel['name'])
+                        except:
+                            pass
                     else:
                         delete_file = False
                         if result == api_uploader.NOK:
