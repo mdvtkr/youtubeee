@@ -219,6 +219,7 @@ def upload(youtube, client_secret, args):
       return QUOTA_EXCEEDED
     return NOK
   except HttpAccessTokenRefreshError as e:
+    # refresh token expiry: https://developers.google.com/identity/protocols/oauth2?hl=ko#expiration
     print('token is invalidated. retry...')
     youtube2, args2 = open_youtube_service(client_secret, args.channel_id)
     return upload(youtube2, args2)
