@@ -270,7 +270,7 @@ if __name__ == '__main__':
         root_path = os.curdir
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-t', '--todo', default='youtubeee.ryjggh.json', help='specify todo file name. default name is "youtubeee.todo.json"', dest='todo')
+    parser.add_argument('-t', '--todo', default='youtubeee.todo.json', help='specify todo file name. default name is "youtubeee.todo.json"', dest='todo')
 
     args = parser.parse_args()
     

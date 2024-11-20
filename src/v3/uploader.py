@@ -222,7 +222,7 @@ def upload(youtube, client_secret, args):
     # refresh token expiry: https://developers.google.com/identity/protocols/oauth2?hl=ko#expiration
     print('token is invalidated. retry...')
     youtube2, args2 = open_youtube_service(client_secret, args.channel_id)
-    return upload(youtube2, args2)
+    return upload(youtube2, client_secret, args2)
   
 def open_youtube_service(client_secret, channel):
   args = types.SimpleNamespace()
