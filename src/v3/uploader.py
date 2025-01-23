@@ -158,10 +158,16 @@ def initialize_upload(youtube, options):
   except:
     raise
 
-  print(f'uploaded: {options.file}') 
+  print(f'uploaded: {options.file}')
+  if video_id is not None:
+    all_playlists = []
+    if options.playlist_id is not None:
+      all_playlists.append(options.playlist_id)
+    if len(options.global_playlist_ids) > 0:
+      all_playlists.extend(options.global_playlist_ids)
 
-  if video_id is not None and options.playlist_id is not None:
-    add_video_to_playlist(youtube, video_id, options.playlist_id)
+    for playlist_id in all_playlists:
+      add_video_to_playlist(youtube, video_id, playlist_id)
 
 # This method implements an exponential backoff strategy to resume a
 # failed upload.

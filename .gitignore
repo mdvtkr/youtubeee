@@ -5,3 +5,4 @@ secrets/**
 build
 *.spec
 dist
+**/*.bak

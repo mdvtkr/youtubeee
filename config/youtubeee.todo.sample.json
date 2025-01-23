@@ -1,5 +1,15 @@
 [
     {
+        "global" : true,
+        "to": [
+            {
+                "active": true,
+                "desc": "description of destination",
+                "playlist_id" : "playlist id"
+            }
+        ]
+    },
+    {
         "file_path" : "full path containing video files",
         "to": [
             {
@@ -8,7 +18,8 @@
                     "id":"channel id"
                 },
                 "client_secret":"oauth2 desktop client secret from google cloud console(json)",
-                "share" : "[does not support yet]email addresses to be shared."
+                "share" : "[does not support yet]email addresses to be shared.",
+                "playlist_id" : "playlist id"
             }
         ]
     }

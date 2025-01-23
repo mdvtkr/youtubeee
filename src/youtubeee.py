@@ -45,7 +45,19 @@ class Youtubeee:
         return True
 
     def run_todos(self):
+        global_playlist_ids = []
         for todo in self.__todo:
+            if not ('global' in todo.keys() and todo['global'] == True):
+                continue
+
+            for to in todo['to']:
+                if to['active'] == True:
+                    global_playlist_ids.append(to['playlist_id'])
+
+        for todo in self.__todo:
+            if ('global' in todo.keys() and todo['global'] == True):
+                continue
+
             # comes first if file name start with number
             # files ordered by timestamp come next
             def file_ordering_key(path:Path):
@@ -230,6 +242,7 @@ class Youtubeee:
                     args.description = video['description']
                     args.playlist_id = channel['playlist_id']
                     args.channel_id = channel['channel_id']
+                    args.global_playlist_ids = global_playlist_ids
                     print('channel: ' + channel['name'], 3)
                     print('playlist: ' + str(args.playlist_id), 3)
                     print('uploading...', 2)
