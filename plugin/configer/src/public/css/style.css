@@ -1,0 +1,93 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 1em;
+}
+
+#files {
+  margin-bottom: 1em;
+}
+
+input {
+  margin-left: 1em;
+}
+
+input[type="text"],
+input[type="number"] {
+  width: 300px;
+}
+
+label {
+  display: block;
+  margin: 0.5em 0 0.2em;
+}
+
+div.jobj {
+  margin-bottom: 1em;
+}
+
+.plus-button {
+  width: 15px;
+  height: 15px;
+  background-color: #777777;
+  /* Green background */
+  border: none;
+  border-radius: 10%;
+  /* Makes it circular */
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+.plus-button:hover {
+  background-color: white;
+  /* Darker green on hover */
+  color: #777777
+}
+
+.plus-button-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /* spacing between button and text */
+  font-family: Arial, sans-serif;
+}
+
+/***** modal popup styles ******/
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 20px;
+  border-radius: 8px;
+  width: 80%;
+  white-space: pre-wrap; /* Keep line breaks in text */
+  font-family: monospace;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.close:hover {
+  color: black;
+}
+/***** modal popup styles ******/
