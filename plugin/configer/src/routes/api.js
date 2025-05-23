@@ -3,7 +3,18 @@ const fs = require('fs')
 const path = require('path')
 
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
-const CONFIG_PATH = process.env.CONFIG_PATH || './config';
+
+const os = require('os');
+
+function expandHome(filepath) {
+  if (filepath.startsWith('~/')) {
+    return path.join(os.homedir(), filepath.slice(2));
+  }
+  return filepath;
+}
+
+const CONFIG_PATH = expandHome(process.env.CONFIG_PATH || './config');
+console.log(`config path: ${CONFIG_PATH}`)
 
 // List JSON files
 router.get('/files', (req, res) => {
