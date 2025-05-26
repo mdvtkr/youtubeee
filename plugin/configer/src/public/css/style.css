@@ -13,7 +13,8 @@ input {
 
 input[type="text"],
 input[type="number"] {
-  width: 300px;
+  padding-left: 5px;
+  padding-right: 5px;
 }
 
 label {
@@ -60,11 +61,14 @@ div.jobj {
 
 /***** modal popup styles ******/
 .modal {
-  display: none; /* Hidden by default */
+  display: none;
+  /* Hidden by default */
   position: fixed;
   z-index: 1000;
-  left: 0; top: 0;
-  width: 100%; height: 100%;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
   overflow: auto;
   background-color: rgba(0, 0, 0, 0.5);
 }
@@ -75,9 +79,23 @@ div.jobj {
   padding: 20px;
   border-radius: 8px;
   width: 80%;
-  white-space: pre-wrap; /* Keep line breaks in text */
+  /* white-space: pre-wrap; */
+  /* Keep line breaks in text */
   font-family: monospace;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* div.modal-save {
+  display: flex;
+} */
+
+button.modal-save {
+  margin-left: auto;
+}
+
+textarea.modal-textarea {
+  width: -webkit-fill-available;
+  height: -webkit-fill-available;
 }
 
 .close {
@@ -87,7 +105,9 @@ div.jobj {
   font-weight: bold;
   cursor: pointer;
 }
+
 .close:hover {
   color: black;
 }
+
 /***** modal popup styles ******/

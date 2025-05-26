@@ -1,3 +1,5 @@
+const global = { 'filename': '' }
+
 async function fetchFiles() {
     const res = await fetch('/api/files');
     const files = await res.json();
@@ -13,6 +15,8 @@ async function fetchFiles() {
 }
 
 async function loadFile(filename) {
+    global.filename = filename
+
     const res = await fetch(`/api/file/${filename}`);
     const data = await res.json();
     renderEditor(data, filename);
@@ -198,13 +202,13 @@ function renderItem(key, value, path, parent) {
     parent.appendChild(li)
 }
 
-function addPlusButton(dom, text) {
+function addPlusButton(dom, labelText, pathInfo) {
     const labelAndButton = document.createElement('div')
     labelAndButton.classList.add('plus-button-container')
 
-    if (text) {
+    if (labelText) {
         const label = document.createElement('span')
-        label.textContent = text
+        label.textContent = labelText
         labelAndButton.appendChild(label)
     }
 
@@ -212,6 +216,7 @@ function addPlusButton(dom, text) {
     plusButton.classList.add('plus-button')
     plusButton.textContent = '+'
     plusButton.onclick = () => {
+        showModalInput(pathInfo)
     }
 
     labelAndButton.appendChild(plusButton)
@@ -223,13 +228,13 @@ function renderArray(arr, path, parent, key) {
     let curParent = parent
     if (key) {
         const arrLabel = document.createElement('li')
-        // arrLabel.textContent = key
-        addPlusButton(arrLabel, key)
+        arrLabel.textContent = key
+        // addPlusButton(arrLabel, key, path)
         parent.appendChild(arrLabel)
         const subList = document.createElement('ul')
         curParent = subList
     } else {
-        addPlusButton(parent)
+        // addPlusButton(parent, undefined, path)
     }
 
     arr.forEach((obj, index) => {
@@ -276,12 +281,25 @@ function renderObject(data, path, parent, parentKey) {
     });
 }
 
+function clearChildrent(parent) {
+    if (!parent)
+        return
+
+    while (parent.firstChild) {
+        parent.removeChild(parent.firstChild)
+    }
+}
+
 function renderEditor(data, filename) {
     console.log('renderEditor')
     const editor = document.getElementById('editor');
+    clearChildrent(editor)
+
     editor.innerHTML = `<h2>Structure of: ${filename}</h2>`;
+
     const saveButton = document.createElement('button')
-    saveButton.textContent = 'save'
+    editor.appendChild(saveButton)
+    saveButton.textContent = '파일에 저장'
     saveButton.onclick = () => {
         fetch(`/api/file/${filename}`, {
             method: 'POST',
@@ -289,10 +307,17 @@ function renderEditor(data, filename) {
             body: JSON.stringify(getJsonFromHtml()),
         }).then(res => res.json())
             .then(res => {
-                if (!res.success) alert('Failed to save file.');
+                if (!res.success) alert(`저장실패: ${JSON.stringify(res, null, 2)}`)
+                else alert('저장완료')
             });
     }
-    editor.appendChild(saveButton)
+
+    const showAllButton = document.createElement('button')
+    editor.appendChild(showAllButton)
+    showAllButton.textContent = '전체보기'
+    showAllButton.onclick = () => {
+        showModalJson()
+    }
 
     let list = document.createElement('ul');
     if (Array.isArray(data)) {
@@ -313,8 +338,27 @@ function renderEditor(data, filename) {
     }
 }
 
-
 fetchFiles();
+
+function getReferenceByJsonPath(obj, path) {
+    if(path.length == 0 || path === '$')
+        return { parent: null, key: null, target: obj }
+
+    // Remove '$' and split on dots, handling array indexes
+    const parts = path
+        .replace(/^\$/, '')                    // remove leading $
+        .replace(/\[(\d+)\]/g, '.$1')          // convert [index] to .index
+        .split('.')
+        .filter(Boolean);
+
+    let ref = obj;
+    for (let i = 0; i < parts.length - 1; i++) {
+        ref = ref[parts[i]];
+        if (ref === undefined) return undefined;
+    }
+
+    return { parent: ref, key: parts.at(-1), target: ref?.[key] };
+}
 
 function getJsonFromHtml() {
     function setValueByPath(obj, path, value) {
@@ -347,8 +391,70 @@ function getJsonFromHtml() {
     return root;
 }
 
-function showJson() {
-    document.getElementById("modalText").textContent = JSON.stringify(getJsonFromHtml(), null, 2);
+function resetModalContent() {
+    // document.getElementById("modalText").textContent = ''
+    clearChildrent(document.getElementById("modalInput"))
+}
+
+function showModalJson() {
+    resetModalContent()
+    const input = document.getElementById("modalTextArea")
+    input.value = JSON.stringify(getJsonFromHtml(), null, 2)
+    const saveButton = document.getElementById("btnSaveModal")
+    saveButton.onclick = () => {
+        try { 
+            renderEditor(JSON.parse(input.value), global.filename)
+            closeModal()
+        } catch (err) {
+            alert(`포멧에 맞게 입력해주세요\n${JSON.stringify(err, null, 2)}`)
+        }
+    }
+    // document.getElementById("modalText").textContent = JSON.stringify(getJsonFromHtml(), null, 2)
+    document.getElementById("modal").style.display = "block";
+}
+
+function showModalInput(pathInfo) {
+    resetModalContent()
+    document.getElementById("modalTextArea").value = ''
+    const saveButton = document.getElementById("btnSaveModal")
+    saveButton.onclick = () => {
+        const fullData = getJsonFromHtml()
+        const found = getReferenceByJsonPath(fullData, pathInfo)
+        const inputValue = document.querySelector('textarea.modal-textarea').value
+        try {
+            if (Array.isArray(found.target)) {
+                const inputObject = JSON.parse(inputValue)
+                found.target.push(inputObject)
+            } else if (typeof found.parent === 'object' && found.parent !== null) {
+                const inputObject = JSON.parse(inputValue)
+                if (found.key) {
+                    found.parent[found.key] = inputObject
+                } else {
+                    found.parent = inputObject
+                }
+            } else {
+                let inputObject;
+                try {
+                    inputObject = JSON.parse(inputValue)
+                } catch (err) {
+                    inputObject = inputValue
+                }
+
+                if (found.key) {
+                    found.parent[found.key] = inputObject
+                } else {
+                    found.parent = inputObject
+                }
+            }
+        } catch (err) {
+            alert(`포멧에 맞춰 입력해주세요(${err.message})\n(${inputValue})`)
+            return
+        }
+
+        renderEditor(fullData, global.filename)
+        closeModal()
+    }
+
     document.getElementById("modal").style.display = "block";
 }
 

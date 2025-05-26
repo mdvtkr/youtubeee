@@ -6,3 +6,4 @@ build
 *.spec
 dist
 **/*.bak
+.DS_Store
