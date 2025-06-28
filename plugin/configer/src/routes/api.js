@@ -9,7 +9,7 @@ const os = require('os');
 
 function expandHome(filepath) {
     if (filepath)
-        return filepath.replaceAll('~/', os.homedir());
+        return filepath.replaceAll('~/', os.homedir() + '/');
     else
         return filepath
 }
@@ -74,7 +74,10 @@ router.get('/config/:configName', (req, res) => {
         const data = loadConfig(req.params.configName)
         return res.json(JSON.parse(data))
     } catch (err) {
-        return res.status(err).json({ error: err == 400 ? 'Invalid file type.' : 'Unable to read file.' });
+        if(typeof err == 'number')
+            return res.status(err).json({ error: err == 400 ? 'Invalid file type.' : 'Unable to read file.' });
+        else
+            return res.status(500).json({ error: 'unknown error.', err});
     }
 });
 
