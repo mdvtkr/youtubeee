@@ -27,9 +27,9 @@ async function loadConfig(configName) {
 }
 
 async function countFiles(configName) {
+    const data = await loadConfig(configName);
     return new Promise((resolve, reject) => {
         try {
-            const data = loadConfig(configName);
             let fileCount = 0;
             data.forEach(element => {
                 if (element.file_path) {
@@ -69,9 +69,9 @@ router.get('/configs', (req, res) => {
 });
 
 // Get JSON file content
-router.get('/config/:configName', (req, res) => {
+router.get('/config/:configName', async (req, res) => {
     try {
-        const data = loadConfig(req.params.configName)
+        const data = await loadConfig(req.params.configName)
         return res.json(JSON.parse(data))
     } catch (err) {
         if(typeof err == 'number')
