@@ -20,7 +20,7 @@ async function loadFile(filename) {
     let res = await fetch(`/api/config/${filename}`);
     const data = await res.json();
 
-    res = await fetch(`api/content/${filename}/pending-count`)
+    res = await fetch(`api/content/${filename}/pending-count/${filename}`)
 
     renderEditor(data, filename, res.json.pendingCount);
 }
