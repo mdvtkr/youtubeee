@@ -1,7 +1,7 @@
-const global = { 'filename': '' }
+const global = { 'filename': '' };
 
 async function fetchFiles() {
-    const res = await fetch('/api/files');
+    const res = await fetch('/api/configs');
     const files = await res.json();
     const filesDiv = document.getElementById('files');
     filesDiv.innerHTML = '<strong>Select a file:</strong><br>';
@@ -17,9 +17,16 @@ async function fetchFiles() {
 async function loadFile(filename) {
     global.filename = filename
 
-    const res = await fetch(`/api/file/${filename}`);
+    let res = await fetch(`/api/config/${filename}`);
     const data = await res.json();
-    renderEditor(data, filename);
+
+    try {
+        res = await fetch(`api/content/pending-count/${filename}`)
+    } catch (err) {
+        console.log(`fetch config file error: ${err}`)
+    }
+
+    renderEditor(data, filename, (await res.json()).pendingCount);
 }
 
 // function renderObject(data, form, filename) {
@@ -57,7 +64,7 @@ async function loadFile(filename) {
 //             }
 
 //             // Save immediately
-//             fetch(`/api/file/${filename}`, {
+//             fetch(`/api/config/${filename}`, {
 //                 method: 'POST',
 //                 headers: { 'Content-Type': 'application/json' },
 //                 body: JSON.stringify(updatedData),
@@ -290,7 +297,7 @@ function clearChildrent(parent) {
     }
 }
 
-function renderEditor(data, filename) {
+function renderEditor(data, filename, pendingCount) {
     console.log('renderEditor')
     const editor = document.getElementById('editor');
     clearChildrent(editor)
@@ -301,7 +308,7 @@ function renderEditor(data, filename) {
     editor.appendChild(saveButton)
     saveButton.textContent = '파일에 저장'
     saveButton.onclick = () => {
-        fetch(`/api/file/${filename}`, {
+        fetch(`/api/config/${filename}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(getJsonFromHtml()),
@@ -317,6 +324,33 @@ function renderEditor(data, filename) {
     showAllButton.textContent = '전체보기'
     showAllButton.onclick = () => {
         showModalJson()
+    }
+
+    if (filename.includes('ddotty')) {
+        const uploadDiv = document.createElement('div')
+
+        const uploadLabel = document.createElement('span')
+        uploadLabel.id = 'upload_label';
+        uploadLabel.textContent = pendingCount + '개 대기 중: '
+
+        const uploadButton = document.createElement('button')
+        uploadButton.textContent = '업로드'
+        uploadButton.onclick = async () => {
+            uploadLabel.textContent = '업로드 중...'
+            const res = await fetch(`/api/content/upload/${filename}`, {
+                method: 'POST',
+            })
+            console.log(res)
+            if(res.status == 200) {
+                uploadLabel.textContent = (await res.json()).pendingCount + '개 대기 중: '
+            } else {
+                uploadLabel.textContent = '업로드 오류'
+            }
+        };
+        uploadDiv.appendChild(uploadLabel)
+        uploadDiv.appendChild(uploadButton)
+
+        editor.appendChild(uploadDiv)
     }
 
     let list = document.createElement('ul');
@@ -341,7 +375,7 @@ function renderEditor(data, filename) {
 fetchFiles();
 
 function getReferenceByJsonPath(obj, path) {
-    if(path.length == 0 || path === '$')
+    if (path.length == 0 || path === '$')
         return { parent: null, key: null, target: obj }
 
     // Remove '$' and split on dots, handling array indexes
@@ -402,7 +436,7 @@ function showModalJson() {
     input.value = JSON.stringify(getJsonFromHtml(), null, 2)
     const saveButton = document.getElementById("btnSaveModal")
     saveButton.onclick = () => {
-        try { 
+        try {
             renderEditor(JSON.parse(input.value), global.filename)
             closeModal()
         } catch (err) {
