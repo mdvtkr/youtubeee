@@ -46,16 +46,16 @@ class Youtubeee:
 
     def run_todos(self):
         global_playlist_ids = []
+        # global config processing 
         for todo in self.__todo:
-            if not ('global' in todo.keys() and todo['global'] == True):
-                continue
+            if 'global' in todo.keys() and todo['global'] == True:
+                for to in todo['to']:
+                    if to['active'] == True:
+                        global_playlist_ids.append(to['playlist_id'])
 
-            for to in todo['to']:
-                if to['active'] == True:
-                    global_playlist_ids.append(to['playlist_id'])
-
+        # todo processing
         for todo in self.__todo:
-            if ('global' in todo.keys() and todo['global'] == True):
+            if 'global' in todo.keys():
                 continue
 
             # comes first if file name start with number
