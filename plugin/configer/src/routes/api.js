@@ -36,16 +36,17 @@ async function countFiles(configName) {
                 if (element.file_path) {
                     console.log(`counting ${element.file_path}`)
                     const dirPath = expandHome(element.file_path);
+                    let fullPath;
                     try {
                         const files = fs.readdirSync(dirPath);
                         for (const file of files) {
-                            const fullPath = path.join(dirPath, file);
+                            fullPath = path.join(dirPath, file);
                             if (fs.statSync(fullPath).isFile()) {
                                 fileCount++;
                             }
                         }
                     } catch (statErr) {
-                        console.error(`Error getting stats for ${fullPath}: ${statErr.message}`);
+                        console.error(`Error getting stats for ${fullPath}}: ${statErr.message}`);
                     }
                 }
             });
