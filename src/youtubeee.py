@@ -123,7 +123,6 @@ class Youtubeee:
 
             def visit_directories(path:Path):
                 video_infos = []         # add sorted files per path
-                hierarchy_names = []
                 if not path.exists():
                     return video_infos
                 
@@ -152,6 +151,7 @@ class Youtubeee:
                     return top_matched
                 
                 for cur_file in sorted(path.iterdir()):
+                    hierarchy_names = []
                     if cur_file.is_dir():
                         hierarchy_names.append(cur_file.name)
                         # add video in current directory
